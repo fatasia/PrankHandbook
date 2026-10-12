@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#f5efe2" />
   <title>混经 · 混的人指南</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='8' fill='%23a03a2e'/%3E%3Ctext x='32' y='46' font-size='40' font-family='serif' font-weight='700' fill='%23f5efe2' text-anchor='middle'%3E%E6%B7%B7%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="assets/style.css?v=8" />
+  <link rel="stylesheet" href="assets/style.css?v=10" />
 </head>
 <body>
   <div id="app" class="boot">正在焚香净手，翻开经书……</div>
@@ -39,34 +39,97 @@
       plugins: [
         function (hook) {
           var KEY = 'hunjing-sidebar';
+          var mobile = window.matchMedia('(max-width: 768px)');
+          var desktopClosed = false;
+          var closed = true;
+          var btn, sidebar, backdrop, content;
+          try {
+            desktopClosed = localStorage.getItem(KEY) === 'close';
+          } catch (_) { /* 禁用存储时仍可正常切换目录。 */ }
 
-          function label(btn) {
-            var closed = document.body.classList.contains('close');
-            var text = closed ? '展开目录' : '收起目录';
-            btn.setAttribute('aria-label', text);
-            btn.setAttribute('title', text);
+          function setClosed(value, restoreFocus) {
+            closed = value;
+            if (!btn) return;
+            var onCover = !!document.querySelector('section.cover.show');
+            var expanded = !closed && !onCover;
+            document.body.classList.toggle('sidebar-closed', closed);
+            document.body.classList.toggle('sidebar-mobile-open', mobile.matches && expanded);
+            btn.hidden = onCover;
+            btn.setAttribute('aria-expanded', String(expanded));
+            btn.setAttribute('aria-label', expanded ? '收起目录' : '展开目录');
+            btn.title = expanded ? '收起目录' : '展开目录';
+            sidebar.inert = !expanded;
+            sidebar.setAttribute('aria-hidden', String(!expanded));
+            backdrop.hidden = !mobile.matches || !expanded;
+            content.inert = mobile.matches && expanded;
+            if (restoreFocus && !onCover) btn.focus({ preventScroll: true });
           }
 
           hook.ready(function () {
-            if (localStorage.getItem(KEY) === 'close') {
-              document.body.classList.add('close');
-            }
-            if (document.querySelector('.sidebar-toggle')) {
-              label(document.querySelector('.sidebar-toggle'));
-              return;
-            }
-            var btn = document.createElement('button');
-            btn.className = 'sidebar-toggle';
+            sidebar = document.querySelector('.sidebar');
+            content = document.querySelector('.content');
+            var original = document.querySelector('.sidebar-toggle');
+            if (!sidebar || !content || !original) return;
+
+            // 使用独立状态和按钮，避免与 Docsify 移动端 close 的反向语义冲突。
+            btn = original.cloneNode(true);
+            original.replaceWith(btn);
             btn.type = 'button';
-            btn.innerHTML = '<span></span><span></span><span></span>';
-            label(btn);
+            sidebar.id = 'book-sidebar';
+            var heading = document.createElement('div');
+            heading.className = 'sidebar-heading';
+            heading.textContent = '目录';
+            sidebar.prepend(heading);
+            btn.setAttribute('aria-controls', sidebar.id);
+            backdrop = document.createElement('div');
+            backdrop.className = 'sidebar-backdrop';
+            backdrop.hidden = true;
+            backdrop.setAttribute('aria-hidden', 'true');
+            sidebar.parentNode.appendChild(backdrop);
+            setClosed(mobile.matches || desktopClosed);
+
             btn.addEventListener('click', function (e) {
               e.stopPropagation();
-              document.body.classList.toggle('close');
-              localStorage.setItem(KEY, document.body.classList.contains('close') ? 'close' : 'open');
-              label(btn);
+              setClosed(!closed);
+              if (!mobile.matches) {
+                desktopClosed = closed;
+                try {
+                  localStorage.setItem(KEY, closed ? 'close' : 'open');
+                } catch (_) { /* 存储不可用不影响阅读。 */ }
+              }
             });
-            document.body.appendChild(btn);
+            sidebar.addEventListener('click', function (e) {
+              if (mobile.matches && e.target.closest('a[href]')) setClosed(true, true);
+            });
+            backdrop.addEventListener('click', function () { setClosed(true, true); });
+            document.addEventListener('keydown', function (e) {
+              if (!mobile.matches || closed) return;
+              if (e.key === 'Escape') {
+                e.preventDefault();
+                setClosed(true, true);
+              }
+              if (e.key === 'Tab') {
+                var items = [btn].concat(Array.from(sidebar.querySelectorAll('a[href], input, button, [tabindex="0"]')))
+                  .filter(function (el) { return !el.disabled && el.getClientRects().length; });
+                var index = items.indexOf(document.activeElement);
+                if (e.shiftKey && index <= 0) {
+                  e.preventDefault();
+                  items[items.length - 1].focus();
+                } else if (!e.shiftKey && (index === -1 || index === items.length - 1)) {
+                  e.preventDefault();
+                  items[0].focus();
+                }
+              }
+            });
+            mobile.addEventListener('change', function () {
+              setClosed(mobile.matches || desktopClosed);
+            });
+            window.addEventListener('hashchange', function () {
+              if (mobile.matches) setClosed(true);
+            });
+          });
+          hook.doneEach(function () {
+            setClosed(mobile.matches || closed);
           });
         },
         function (hook) {

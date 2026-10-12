@@ -204,7 +204,7 @@ section.cover .cover-main {
 
 /* ---------------- 侧栏 ---------------- */
 
-/* 桌面双栏。docsify 的收起按钮只在窄屏渲染，宽屏自己补一枚 */
+/* 桌面双栏，与手机共用独立的目录状态。 */
 @media (min-width: 769px) {
   .sidebar {
     position: fixed;
@@ -221,8 +221,8 @@ section.cover .cover-main {
     margin-left: 300px;
     transition: margin-left .28s ease;
   }
-  body.close .sidebar { transform: translateX(-300px); }
-  body.close .content { margin-left: 0; }
+  body.sidebar-closed .sidebar { transform: translateX(-300px); }
+  body.sidebar-closed .content { margin-left: 0; }
 
   .sidebar-toggle {
     position: fixed;
@@ -243,21 +243,75 @@ section.cover .cover-main {
     transition: left .28s ease, background .2s ease;
   }
   .sidebar-toggle:hover { background: var(--cinnabar-soft); }
-  body.close .sidebar-toggle { left: 16px; }
+  body.sidebar-closed .sidebar-toggle { left: 16px; }
 
   /* 封面还摊着的时候，目录开关先退场 */
   body:has(section.cover.show) .sidebar-toggle { display: none; }
 }
 
-/* 移动端：docsify 核心自带堆叠与遮罩，主题只调观感 */
+/* 手机采用覆盖式目录，不移动正文。 */
+.sidebar-heading { display: none; }
 @media (max-width: 768px) {
-  .sidebar { box-shadow: 4px 0 24px rgba(46,42,36,.12); }
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(300px, 84vw);
+    z-index: 100;
+    transform: translateX(0);
+    transition: transform .25s ease;
+    box-shadow: 4px 0 24px rgba(46,42,36,.18);
+  }
+  body.sidebar-closed .sidebar {
+    transform: translateX(-105%);
+    box-shadow: none;
+  }
+
+  /* 侧栏展开时的遮罩；点空白处由 JS 收起 */
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(46,42,36,.32);
+    z-index: 99;
+  }
+
+  .sidebar-toggle {
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    z-index: 101;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(46,42,36,.1);
+  }
+  body.sidebar-mobile-open { overflow: hidden; }
+  body .sidebar { padding-top: 0; }
+  .sidebar-heading {
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    min-height: calc(68px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) 20px 0 72px;
+    margin-bottom: 16px;
+    background: var(--paper-deep);
+    border-bottom: 1px solid var(--paper-line);
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .sidebar ul li a { min-height: 44px; display: flex; align-items: center; }
 }
 
 .sidebar {
   background: var(--paper-deep);
   border-right: 1px solid var(--paper-line);
   padding: 36px 0 60px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   font-family: var(--reading);
   color: var(--ink);
 }
@@ -469,7 +523,7 @@ section.cover .cover-main {
 
 @media (max-width: 768px) {
   .markdown-section {
-    padding: 36px 20px 90px;
+    padding: 76px 20px 90px;
     font-size: 15px;
   }
   .markdown-section h1 { font-size: 24px; }
@@ -479,31 +533,33 @@ section.cover .cover-main {
   .cover-foot { padding: 0 16px; letter-spacing: .08em; }
 }
 
-/* 目录开关：三道朱砂短线。宽屏的底和边框写在上面的桌面规则里，这里不覆盖 */
+/* 开关始终可点：收起时为目录图标，展开时为关闭图标。 */
 .sidebar-toggle {
   cursor: pointer;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.sidebar-toggle span,
-.sidebar-toggle-button span {
-  background-color: var(--cinnabar) !important;
+.sidebar-toggle[hidden], .sidebar-backdrop[hidden] { display: none; }
+.sidebar-toggle:focus-visible { outline: 2px solid var(--cinnabar); outline-offset: 3px; }
+.sidebar-toggle span {
+  background: var(--cinnabar);
   display: block;
-  width: 16px;
-  height: 1.5px;
-  margin: 3px auto;
+  width: 18px;
+  height: 2px;
+  margin: 4px auto;
   border-radius: 1px;
   transition: transform .2s ease, opacity .2s ease;
 }
-body.close .sidebar-toggle span:nth-child(1),
-body.close .sidebar-toggle-button span:nth-child(1) { transform: translateY(4.5px); }
-body.close .sidebar-toggle span:nth-child(2),
-body.close .sidebar-toggle-button span:nth-child(2) { opacity: 0; }
-body.close .sidebar-toggle span:nth-child(3),
-body.close .sidebar-toggle-button span:nth-child(3) { transform: translateY(-4.5px); }
-
+body:not(.sidebar-closed) .sidebar-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+body:not(.sidebar-closed) .sidebar-toggle span:nth-child(2) { opacity: 0; }
+body:not(.sidebar-closed) .sidebar-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 @media (max-width: 768px) {
-  .sidebar-toggle {
-    background: var(--paper);
-    border: 1px solid var(--paper-line);
-    border-radius: 8px;
-  }
+  .sidebar-toggle { top: calc(12px + env(safe-area-inset-top, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar, .content, .sidebar-toggle, .sidebar-toggle span { transition: none; }
 }
