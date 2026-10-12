@@ -1,0 +1,7 @@
+# 工具与部署产物
+.cloudbase/
+.workbuddy-ai/
+
+# 系统文件
+Thumbs.db
+.DS_Store

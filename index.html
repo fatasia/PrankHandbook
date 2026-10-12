@@ -8,17 +8,19 @@
   <meta name="theme-color" content="#f5efe2" />
   <title>混经 · 混的人指南</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='8' fill='%23a03a2e'/%3E%3Ctext x='32' y='46' font-size='40' font-family='serif' font-weight='700' fill='%23f5efe2' text-anchor='middle'%3E%E6%B7%B7%3C/text%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="assets/style.css?v=4" />
+  <link rel="stylesheet" href="assets/style.css?v=8" />
 </head>
 <body>
-  <div id="app">正在焚香净手，翻开经书……</div>
+  <div id="app" class="boot">正在焚香净手，翻开经书……</div>
   <script>
     window.$docsify = {
       name: '混经',
+      repo: 'fatasia/PrankHandbook',
       homepage: 'xuyan.md',
       loadSidebar: true,
       subMaxLevel: 2,
       coverpage: true,
+      onlyCover: true,
       auto2top: true,
       search: {
         placeholder: { '/': '搜索经文' },
@@ -34,6 +36,63 @@
         color: '#a03a2e',
         language: 'chinese',
       },
+      plugins: [
+        function (hook) {
+          var KEY = 'hunjing-sidebar';
+
+          function label(btn) {
+            var closed = document.body.classList.contains('close');
+            var text = closed ? '展开目录' : '收起目录';
+            btn.setAttribute('aria-label', text);
+            btn.setAttribute('title', text);
+          }
+
+          hook.ready(function () {
+            if (localStorage.getItem(KEY) === 'close') {
+              document.body.classList.add('close');
+            }
+            if (document.querySelector('.sidebar-toggle')) {
+              label(document.querySelector('.sidebar-toggle'));
+              return;
+            }
+            var btn = document.createElement('button');
+            btn.className = 'sidebar-toggle';
+            btn.type = 'button';
+            btn.innerHTML = '<span></span><span></span><span></span>';
+            label(btn);
+            btn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              document.body.classList.toggle('close');
+              localStorage.setItem(KEY, document.body.classList.contains('close') ? 'close' : 'open');
+              label(btn);
+            });
+            document.body.appendChild(btn);
+          });
+        },
+        function (hook) {
+          // 封面独占一屏（onlyCover），进入路径只剩这个承诺：按 Enter 或点击任意处
+          hook.ready(function () {
+            function onCover() {
+              return !!document.querySelector('section.cover.show');
+            }
+            function enter() {
+              location.hash = '#/xuyan.md';
+            }
+            function isTyping(t) {
+              return t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+            }
+            document.addEventListener('keydown', function (e) {
+              if (e.key !== 'Enter' || !onCover() || isTyping(e.target)) return;
+              enter();
+            });
+            document.addEventListener('click', function (e) {
+              if (!onCover() || !e.target.closest) return;
+              if (e.target.closest('a') || !e.target.closest('section.cover')) return;
+              enter();
+            });
+          });
+        },
+      ],
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>

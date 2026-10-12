@@ -12,6 +12,7 @@
   --cinnabar: #a03a2e;     /* 朱砂，全站唯一强调色 */
   --cinnabar-soft: #f0e2d8;/* 朱砂wash，批注底 */
   --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  --reading: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Source Han Sans SC", system-ui, sans-serif;
   --mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
 }
 
@@ -22,11 +23,43 @@ html, body {
   padding: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--serif);
+  font-family: var(--reading);
   -webkit-font-smoothing: antialiased;
 }
 
 ::selection { background: var(--cinnabar); color: var(--paper); }
+
+/* GitHub 角标：docsify repo 配置生成，朱砂配色贴主题。
+   svg 尺寸由主题提供（官方主题负责此事，自写主题必须自己给） */
+.github-corner {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 60;
+}
+.github-corner svg {
+  width: 72px;
+  height: 72px;
+  fill: var(--cinnabar);
+  color: var(--paper);
+  transition: transform .25s ease;
+}
+.github-corner:hover svg { transform: scale(1.08); }
+@media (max-width: 768px) {
+  .github-corner svg { width: 52px; height: 52px; }
+}
+
+/* 焚香：docsify 接管 #app 之前，这句话要坐在纸心 */
+#app.boot {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: .28em;
+  text-indent: .28em;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
 
 /* 细朱砂滚动条 */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -40,6 +73,13 @@ a:hover { opacity: .72; text-decoration: none; }
 
 /* docsify 核心靠主题 CSS 控制 cover 显隐：无 .show 时必须隐藏 */
 section.cover {
+  display: none;
+  font-family: var(--serif);
+}
+
+/* onlyCover 模式下核心在封面路由给 main 加 .hidden，主题必须自己接住，
+   否则侧栏和首页正文会漏到封面旁边/下面 */
+main.hidden {
   display: none;
 }
 
@@ -65,20 +105,24 @@ section.cover .cover-main {
 
 @media (prefers-reduced-motion: reduce) {
   section.cover .cover-main { animation: none; }
+  .sidebar, .content, .sidebar-toggle { transition: none; }
 }
 
 .cover-main { margin: 0 auto; }
 
 .cover-title-wrap {
+  /* 印章绝对定位、不占布局：标题独占中轴，与下方文字共用一条视觉中线 */
+  --cover-title-size: clamp(88px, 18vh, 148px);
+  --seal-size: 54px;
+  --seal-gap: 22px;
+  position: relative;
   display: flex;
-  align-items: flex-start;
   justify-content: center;
-  gap: 22px;
 }
 
 .cover-title {
   font-family: var(--serif);
-  font-size: clamp(88px, 18vh, 148px);
+  font-size: var(--cover-title-size);
   line-height: 1;
   font-weight: 900;
   letter-spacing: .18em;
@@ -88,15 +132,18 @@ section.cover .cover-main {
 }
 
 .cover-seal {
-  /* 朱砂方印 */
-  width: 54px;
-  height: 54px;
+  /* 朱砂方印：钤在「混」字左肩 */
+  position: absolute;
+  top: 0;
+  left: calc(50% - var(--cover-title-size) / 2 - var(--seal-gap) - var(--seal-size));
+  width: var(--seal-size);
+  height: var(--seal-size);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--cinnabar);
   color: var(--paper);
-  font-size: 34px;
+  font-size: calc(var(--seal-size) * 0.63);
   font-weight: 700;
   border-radius: 8px;
   transform: rotate(4deg);
@@ -157,7 +204,7 @@ section.cover .cover-main {
 
 /* ---------------- 侧栏 ---------------- */
 
-/* 桌面双栏布局（docsify 核心不含布局，主题负责） */
+/* 桌面双栏。docsify 的收起按钮只在窄屏渲染，宽屏自己补一枚 */
 @media (min-width: 769px) {
   .sidebar {
     position: fixed;
@@ -167,29 +214,39 @@ section.cover .cover-main {
     width: 300px;
     overflow-y: auto;
     z-index: 20;
-    transition: transform .25s ease;
+    transform: none;
+    transition: transform .28s ease;
   }
   .content {
     margin-left: 300px;
+    transition: margin-left .28s ease;
   }
-  body.close .sidebar { transform: translateX(-100%); }
+  body.close .sidebar { transform: translateX(-300px); }
   body.close .content { margin-left: 0; }
+
   .sidebar-toggle {
     position: fixed;
-    left: 0;
-    bottom: 0;
-    z-index: 30;
-    width: 42px;
-    height: 42px;
-    background: var(--paper-deep);
+    left: 276px;
+    bottom: 18px;
+    z-index: 40;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: var(--paper);
     border: 1px solid var(--paper-line);
-    border-radius: 0 8px 0 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(46, 42, 36, .08);
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
+    transition: left .28s ease, background .2s ease;
   }
-  body.close .sidebar-toggle { left: 0; }
+  .sidebar-toggle:hover { background: var(--cinnabar-soft); }
+  body.close .sidebar-toggle { left: 16px; }
+
+  /* 封面还摊着的时候，目录开关先退场 */
+  body:has(section.cover.show) .sidebar-toggle { display: none; }
 }
 
 /* 移动端：docsify 核心自带堆叠与遮罩，主题只调观感 */
@@ -201,7 +258,7 @@ section.cover .cover-main {
   background: var(--paper-deep);
   border-right: 1px solid var(--paper-line);
   padding: 36px 0 60px;
-  font-family: var(--serif);
+  font-family: var(--reading);
   color: var(--ink);
 }
 
@@ -262,7 +319,7 @@ section.cover .cover-main {
   border: 1px solid var(--paper-line);
   border-radius: 6px;
   padding: 5px 10px;
-  font-family: var(--serif);
+  font-family: var(--reading);
   font-size: 13px;
   color: var(--ink);
   width: 100%;
@@ -280,8 +337,8 @@ section.cover .cover-main {
 .markdown-section {
   max-width: 44em;
   margin: 0 auto;
-  padding: 56px 32px 120px;
-  font-family: var(--serif);
+  padding: 64px 40px 128px;
+  font-family: var(--reading);
   color: var(--ink);
   font-size: 16px;
   line-height: 2.05;
@@ -402,8 +459,11 @@ section.cover .cover-main {
 /* 图片 */
 .markdown-section img { max-width: 100%; border-radius: 8px; }
 
-/* 字数统计 */
-.words-count { font-family: var(--serif); }
+/* 字数统计：贴在纸边，别压住偈 */
+.words-count {
+  font-family: var(--reading);
+  opacity: .72;
+}
 
 /* ---------------- 移动端 ---------------- */
 
@@ -414,13 +474,36 @@ section.cover .cover-main {
   }
   .markdown-section h1 { font-size: 24px; }
   .markdown-section h2 { font-size: 18px; }
-  .cover-title { font-size: clamp(64px, 14vh, 96px); }
-  .cover-seal { width: 44px; height: 44px; font-size: 26px; }
+  .cover-title-wrap { --cover-title-size: clamp(64px, 14vh, 96px); --seal-size: 44px; --seal-gap: 14px; }
   .cover-sub { letter-spacing: .2em; font-size: 15px; }
   .cover-foot { padding: 0 16px; letter-spacing: .08em; }
 }
 
-/* docsify 移动端侧栏遮罩 */
-body.close .sidebar-toggle span { background: var(--cinnabar); }
-.sidebar-toggle { background: transparent; }
-.sidebar-toggle span { background-color: var(--cinnabar) !important; }
+/* 目录开关：三道朱砂短线。宽屏的底和边框写在上面的桌面规则里，这里不覆盖 */
+.sidebar-toggle {
+  cursor: pointer;
+}
+.sidebar-toggle span,
+.sidebar-toggle-button span {
+  background-color: var(--cinnabar) !important;
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  margin: 3px auto;
+  border-radius: 1px;
+  transition: transform .2s ease, opacity .2s ease;
+}
+body.close .sidebar-toggle span:nth-child(1),
+body.close .sidebar-toggle-button span:nth-child(1) { transform: translateY(4.5px); }
+body.close .sidebar-toggle span:nth-child(2),
+body.close .sidebar-toggle-button span:nth-child(2) { opacity: 0; }
+body.close .sidebar-toggle span:nth-child(3),
+body.close .sidebar-toggle-button span:nth-child(3) { transform: translateY(-4.5px); }
+
+@media (max-width: 768px) {
+  .sidebar-toggle {
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 8px;
+  }
+}
