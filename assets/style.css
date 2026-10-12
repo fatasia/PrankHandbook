@@ -1,0 +1,426 @@
+/* ============================================================
+   混经 · 主题 CSS
+   宣纸 / 墨字 / 朱砂。经书要静，不要炫。
+   ============================================================ */
+
+:root {
+  --paper: #f5efe2;        /* 宣纸 */
+  --paper-deep: #ede5d2;   /* 深纸（侧栏） */
+  --paper-line: #d9cfb6;   /* 纸纹线 */
+  --ink: #2e2a24;          /* 墨 */
+  --ink-soft: #6b6355;     /* 淡墨 */
+  --cinnabar: #a03a2e;     /* 朱砂，全站唯一强调色 */
+  --cinnabar-soft: #f0e2d8;/* 朱砂wash，批注底 */
+  --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  --mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--cinnabar); color: var(--paper); }
+
+/* 细朱砂滚动条 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--paper-line); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cinnabar); }
+
+a { color: var(--cinnabar); text-decoration: none; transition: opacity .2s ease; }
+a:hover { opacity: .72; text-decoration: none; }
+
+/* ---------------- 封面 ---------------- */
+
+/* docsify 核心靠主题 CSS 控制 cover 显隐：无 .show 时必须隐藏 */
+section.cover {
+  display: none;
+}
+
+section.cover.show {
+  display: flex;
+  background: var(--paper) !important;
+  background-image: radial-gradient(ellipse 90% 70% at 50% 0%, rgba(160,58,46,.045), transparent 60%) !important;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+section.cover .cover-main {
+  max-width: 100%;
+  text-align: center;
+  animation: cover-in .9s ease both;
+}
+
+@keyframes cover-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  section.cover .cover-main { animation: none; }
+}
+
+.cover-main { margin: 0 auto; }
+
+.cover-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 22px;
+}
+
+.cover-title {
+  font-family: var(--serif);
+  font-size: clamp(88px, 18vh, 148px);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .18em;
+  writing-mode: vertical-rl;
+  margin: 0;
+  color: var(--ink);
+}
+
+.cover-seal {
+  /* 朱砂方印 */
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cinnabar);
+  color: var(--paper);
+  font-size: 34px;
+  font-weight: 700;
+  border-radius: 8px;
+  transform: rotate(4deg);
+  box-shadow: 0 3px 10px rgba(46,42,36,.18);
+}
+
+.cover-sub {
+  margin: 34px 0 0;
+  font-size: 17px;
+  letter-spacing: .32em;
+  color: var(--ink-soft);
+}
+
+.cover-quote {
+  margin: 26px 0 0;
+  font-size: 15px;
+  line-height: 2.1;
+  color: var(--ink);
+}
+
+.cover-enter {
+  margin: 44px 0 0;
+  font-size: 13px;
+  letter-spacing: .2em;
+  color: var(--cinnabar);
+  animation: breathe 2.6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: .45; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover-enter { animation: none; }
+}
+
+.cover-foot {
+  margin-top: 56px;
+  text-align: center;
+  line-height: 2.2;
+}
+
+.cover-foot-line {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: .5em;
+  text-indent: .5em; /* 抵消末字符字距，保证视觉居中 */
+  color: var(--ink);
+}
+
+.cover-foot-dim {
+  color: var(--ink-soft);
+  font-size: 11px;
+  letter-spacing: .3em;
+  text-indent: .3em;
+}
+
+/* ---------------- 侧栏 ---------------- */
+
+/* 桌面双栏布局（docsify 核心不含布局，主题负责） */
+@media (min-width: 769px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 300px;
+    overflow-y: auto;
+    z-index: 20;
+    transition: transform .25s ease;
+  }
+  .content {
+    margin-left: 300px;
+  }
+  body.close .sidebar { transform: translateX(-100%); }
+  body.close .content { margin-left: 0; }
+  .sidebar-toggle {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 30;
+    width: 42px;
+    height: 42px;
+    background: var(--paper-deep);
+    border: 1px solid var(--paper-line);
+    border-radius: 0 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  body.close .sidebar-toggle { left: 0; }
+}
+
+/* 移动端：docsify 核心自带堆叠与遮罩，主题只调观感 */
+@media (max-width: 768px) {
+  .sidebar { box-shadow: 4px 0 24px rgba(46,42,36,.12); }
+}
+
+.sidebar {
+  background: var(--paper-deep);
+  border-right: 1px solid var(--paper-line);
+  padding: 36px 0 60px;
+  font-family: var(--serif);
+  color: var(--ink);
+}
+
+.sidebar ul { list-style: none; margin: 0; padding: 0 8px; }
+
+.sidebar ul li { margin: 2px 0; }
+
+.sidebar ul li a,
+.sidebar ul li strong {
+  display: block;
+  padding: 5px 12px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  font-weight: 400;
+}
+
+.sidebar ul li strong {
+  margin-top: 18px;
+  color: var(--cinnabar);
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.sidebar ul li a:hover { opacity: 1; background: rgba(160,58,46,.07); }
+
+.sidebar ul li.active > a {
+  background: rgba(160,58,46,.1);
+  border-left: 2px solid var(--cinnabar);
+  color: var(--cinnabar);
+  font-weight: 700;
+}
+
+/* 站名 */
+.app-name {
+  text-align: center;
+  margin: 0 0 14px;
+  padding: 0 16px 18px;
+  border-bottom: 1px solid var(--paper-line);
+}
+.app-name a {
+  color: var(--ink);
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: .3em;
+}
+
+/* 搜索框 */
+.sidebar .search {
+  margin: 0 16px 10px;
+  border-bottom: 1px solid var(--paper-line);
+  padding-bottom: 10px;
+}
+.sidebar .search input {
+  background: transparent;
+  border: 1px solid var(--paper-line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: var(--serif);
+  font-size: 13px;
+  color: var(--ink);
+  width: 100%;
+}
+.sidebar .search input:focus { outline: none; border-color: var(--cinnabar); }
+.sidebar .search .results-panel { background: var(--paper); border-radius: 6px; }
+.sidebar .search .matching-post { border-bottom: 1px solid var(--paper-line); }
+
+/* ---------------- 正文 ---------------- */
+
+.content {
+  background: var(--paper);
+}
+
+.markdown-section {
+  max-width: 44em;
+  margin: 0 auto;
+  padding: 56px 32px 120px;
+  font-family: var(--serif);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 2.05;
+}
+
+.markdown-section h1 {
+  text-align: center;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  margin: 0 0 8px;
+  padding-top: 10px;
+}
+
+/* 章题下的短朱线 */
+.markdown-section h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  background: var(--cinnabar);
+  margin: 18px auto 0;
+  border-radius: 2px;
+}
+
+.markdown-section h2 {
+  font-size: 21px;
+  font-weight: 700;
+  margin: 2.6em 0 .9em;
+  padding-left: 12px;
+  border-left: 4px solid var(--cinnabar);
+  line-height: 1.5;
+}
+
+.markdown-section h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 2em 0 .7em;
+}
+
+.markdown-section p {
+  margin: 0 0 1.05em;
+}
+
+/* 正文段落首行缩进（中文传统排版），列表与引用内不缩进 */
+.markdown-section > p,
+.markdown-section > ul > li p {
+  text-indent: 0; /* docsify 段落多变，缩进交给各章自觉，避免破坏列表 */
+}
+
+/* 批注：仿古注体例 */
+.markdown-section blockquote {
+  margin: 1.4em 0;
+  padding: 14px 18px;
+  background: var(--cinnabar-soft);
+  border-left: 3px solid var(--cinnabar);
+  border-radius: 0 8px 8px 0;
+  color: var(--ink);
+  font-size: 14.5px;
+  line-height: 1.95;
+}
+.markdown-section blockquote p { margin: 0 0 .4em; }
+.markdown-section blockquote p:last-child { margin-bottom: 0; }
+.markdown-section blockquote strong { color: var(--cinnabar); }
+
+.markdown-section strong { font-weight: 700; }
+
+.markdown-section em { font-style: normal; color: var(--cinnabar); }
+
+.markdown-section hr {
+  border: none;
+  border-top: 1px dashed var(--paper-line);
+  margin: 2.8em auto;
+  width: 60%;
+}
+
+.markdown-section ul, .markdown-section ol {
+  padding-left: 1.6em;
+}
+.markdown-section li { margin: .35em 0; }
+
+/* 代码块：夜读模式 */
+.markdown-section pre,
+.markdown-section pre > code {
+  background: #2e2a24;
+  color: #e9e2d2;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.8;
+  border-radius: 10px;
+}
+.markdown-section pre { padding: 16px 18px; }
+.markdown-section code {
+  font-family: var(--mono);
+  font-size: .88em;
+  background: rgba(160,58,46,.09);
+  color: var(--cinnabar);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.markdown-section pre > code { padding: 0; background: transparent; color: inherit; }
+
+/* 表格 */
+.markdown-section table {
+  display: block;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  overflow-x: auto;
+}
+.markdown-section th, .markdown-section td {
+  border: 1px solid var(--paper-line);
+  padding: 8px 12px;
+  text-align: left;
+}
+.markdown-section th { background: var(--paper-deep); font-weight: 700; }
+
+/* 图片 */
+.markdown-section img { max-width: 100%; border-radius: 8px; }
+
+/* 字数统计 */
+.words-count { font-family: var(--serif); }
+
+/* ---------------- 移动端 ---------------- */
+
+@media (max-width: 768px) {
+  .markdown-section {
+    padding: 36px 20px 90px;
+    font-size: 15px;
+  }
+  .markdown-section h1 { font-size: 24px; }
+  .markdown-section h2 { font-size: 18px; }
+  .cover-title { font-size: clamp(64px, 14vh, 96px); }
+  .cover-seal { width: 44px; height: 44px; font-size: 26px; }
+  .cover-sub { letter-spacing: .2em; font-size: 15px; }
+  .cover-foot { padding: 0 16px; letter-spacing: .08em; }
+}
+
+/* docsify 移动端侧栏遮罩 */
+body.close .sidebar-toggle span { background: var(--cinnabar); }
+.sidebar-toggle { background: transparent; }
+.sidebar-toggle span { background-color: var(--cinnabar) !important; }
